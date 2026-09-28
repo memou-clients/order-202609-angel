@@ -193,5 +193,90 @@
   </div>
 
 <script src="script.js"></script>
+<!-- MEMOu YouTube Background Audio Engine -->
+  <div id="ytBgmWrapper" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0.001;pointer-events:none;">
+    <div id="ytPlayer"></div>
+  </div>
+  <script>
+    window.MEMOU_YT_ID = "Aqc3VTpz9HQ";
+  </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    (function() {
+      var ytPlayer = null;
+      window.onYouTubeIframeAPIReady = function() {
+        ytPlayer = new YT.Player('ytPlayer', {
+          height: '1',
+          width: '1',
+          videoId: window.MEMOU_YT_ID,
+          playerVars: {
+            autoplay: 0,
+            loop: 1,
+            playlist: window.MEMOU_YT_ID,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            playsinline: 1
+          },
+          events: {
+            onStateChange: function(e) {
+              var isPlaying = e.data === 1;
+              if (typeof setMusicState === 'function') setMusicState(isPlaying);
+              var bgm = document.getElementById('bgm') || document.getElementById('bgMusic');
+              if (bgm) {
+                if (isPlaying) bgm.dispatchEvent(new Event('play'));
+                else bgm.dispatchEvent(new Event('pause'));
+              }
+            }
+          }
+        });
+      };
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var bgm = document.getElementById('bgm') || document.getElementById('bgMusic');
+        if (bgm) {
+          bgm.play = function() {
+            if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); }
+            return Promise.resolve();
+          };
+          bgm.pause = function() {
+            if (ytPlayer && ytPlayer.pauseVideo) { ytPlayer.pauseVideo(); }
+          };
+          try {
+            Object.defineProperty(bgm, 'paused', {
+              get: function() {
+                if (!ytPlayer || !ytPlayer.getPlayerState) return true;
+                return ytPlayer.getPlayerState() !== 1;
+              },
+              configurable: true
+            });
+          } catch(err) {}
+        }
+
+        var toggle = document.getElementById('musicToggle');
+        if (toggle) {
+          toggle.addEventListener('click', function() {
+            if (ytPlayer && ytPlayer.getPlayerState) {
+              if (ytPlayer.getPlayerState() === 1) { ytPlayer.pauseVideo(); }
+              else { ytPlayer.playVideo(); }
+            }
+          });
+        }
+
+        var startButtons = ['enterSiteBtn', 'openSurprise', 'startGame'];
+        startButtons.forEach(function(btnId) {
+          var b = document.getElementById(btnId);
+          if (b) {
+            b.addEventListener('click', function() {
+              setTimeout(function() {
+                if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); }
+              }, 400);
+            });
+          }
+        });
+      });
+    })();
+  </script>
+<!-- /MEMOu YouTube Background Audio Engine -->
 </body>
 </html>
